@@ -7,7 +7,7 @@ import Auth from './components/Auth'; // Added this import
 
 // Import Pages
 import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Inventory';
+import Inventory from './pages/Items';
 import SalesOrder from './pages/SalesOrder';
 import PurchaseOrder from './pages/PurchaseOrder';
 import Reports from './pages/Reports';
@@ -45,6 +45,7 @@ function App() {
       case 'customers': return <Customers />;
       case 'suppliers': return <Suppliers />;
       case 'transactions': return <Transactions />;
+      case 'inventory': return <Items />;
       case 'journal': return <Journal />;
       case 'settings': return <Settings />;
       default: return <Dashboard setPage={setActivePage} />;

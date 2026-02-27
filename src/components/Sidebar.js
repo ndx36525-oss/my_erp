@@ -21,10 +21,10 @@ const Sidebar = ({ activePage, setPage }) => {
     if (error) alert(error.message);
   };
 
-  // Grouped Menu Items for better organization
+  // Grouped Menu Items
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'inventory', label: 'Inventory', icon: <Package size={20} /> },
+    { id: 'inventory', label: 'Inventory', icon: <Package size={20} /> }, // This links to your Items.js
     { id: 'sales', label: 'Sales Order', icon: <ShoppingCart size={20} /> },
     { id: 'purchase', label: 'Purchase Order', icon: <Truck size={20} /> },
     { id: 'customers', label: 'Customers', icon: <Users size={20} /> },
