@@ -45,7 +45,6 @@ function App() {
       case 'customers': return <Customers />;
       case 'suppliers': return <Suppliers />;
       case 'transactions': return <Transactions />;
-      case 'inventory': return <Items />;
       case 'journal': return <Journal />;
       case 'settings': return <Settings />;
       default: return <Dashboard setPage={setActivePage} />;
