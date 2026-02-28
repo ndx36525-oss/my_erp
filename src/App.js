@@ -7,7 +7,7 @@ import Suppliers from './pages/Suppliers';
 import Reports from './pages/Reports';
 import Transactions from './pages/Transactions';
 import Journal from './pages/Journal';
-import Settings from './pages/Settings';
+import Settings from './Settings';
 import PurchaseOrder from './pages/PurchaseOrder';
 
 // Import other placeholder pages as you create them
