@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Inventory'; // Import your new Items page
+import Inventory from './pages/Inventory';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
 import Reports from './pages/Reports';
