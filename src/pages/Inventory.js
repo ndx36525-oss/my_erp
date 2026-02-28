@@ -10,7 +10,7 @@ const Items = () => {
   
   // Form State for both Add and Edit
   const [formData, setFormData] = useState({
-    name: '', sku: '', description: '', quantity: 0, uom: 'pcs', price: 0, shipment_threshold: 0
+    name: '', sku: '', description: '', quantity: 0, uom: 'pcs', purchase_price: 0, selling_price: 0, shipment_threshold: 0
   });
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const Items = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', sku: '', description: '', quantity: 0, uom: 'pcs', price: 0, shipment_threshold: 0 });
+    setFormData({ name: '', sku: '', description: '', quantity: 0, uom: 'pcs', purchase_price: 0, selling_price: 0, shipment_threshold: 0 });
   };
 
   // --- Filtered List ---
@@ -81,7 +81,8 @@ const Items = () => {
           <input className="border p-2 rounded text-sm" placeholder="Item Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
           <input className="border p-2 rounded text-sm" placeholder="SKU" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} required />
           <input className="border p-2 rounded text-sm" type="number" placeholder="Initial Qty" onChange={e => setFormData({...formData, quantity: parseInt(e.target.value)})} />
-          <input className="border p-2 rounded text-sm" type="number" step="0.01" placeholder="Price" onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} />
+          <input className="border p-2 rounded text-sm" type="number" step="0.01" placeholder="Purchase Price" onChange={e => setFormData({...formData, purchase_price: parseFloat(e.target.value)})} />
+          <input className="border p-2 rounded text-sm" type="number" step="0.01" placeholder="Selling Price" onChange={e => setFormData({...formData, selling_price: parseFloat(e.target.value)})} />
           <input className="border p-2 rounded text-sm" placeholder="UOM (pcs, kg)" value={formData.uom} onChange={e => setFormData({...formData, uom: e.target.value})} />
           <input className="border p-2 rounded text-sm" type="number" placeholder="Alert Threshold" onChange={e => setFormData({...formData, shipment_threshold: parseInt(e.target.value)})} />
           <textarea className="border p-2 rounded text-sm md:col-span-2" placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows="1" />
@@ -106,7 +107,7 @@ const Items = () => {
             <tr>
               <th className="p-4">Item / SKU</th>
               <th className="p-4">Stock Level</th>
-              <th className="p-4">Price/UOM</th>
+              <th className="p-4">Cost/UOM</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -144,9 +145,9 @@ const Items = () => {
                 </td>
                 <td className="p-4 text-sm text-gray-600">
                    {editId === item.user_id ? (
-                     <input type="number" className="border p-1 w-20" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} />
+                     <input type="number" className="border p-1 w-20" value={formData.purchase_price} onChange={e => setFormData({...formData, purchase_price: parseFloat(e.target.value)})} />
                    ) : (
-                     `$${item.price} / ${item.uom}`
+                     `$${item.purchase_price} / ${item.uom}`
                    )}
                 </td>
                 <td className="p-4 text-right">

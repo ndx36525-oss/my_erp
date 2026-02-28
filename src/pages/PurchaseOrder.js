@@ -10,8 +10,8 @@ const PurchaseOrder = () => {
   // Form State
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
-  const [quantity, setQuantity] = useState(0);
-  const [cost, setCost] = useState(0);
+  const [quantity, setQuantity] = useState('Quantity');
+  const [cost, setCost] = useState('Unit Price');
   const [paymentMethod, setPaymentMethod] = useState('cash'); // Default to cash
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const PurchaseOrder = () => {
   const handleItemChange = (itemId) => {
     setSelectedItem(itemId);
     const item = items.find(i => i.id === itemId);
-    if (item) setCost(item.cost_price);
+    if (item) setCost(item.purchase_price);
   };
 
   const handleSubmit = async (e) => {
