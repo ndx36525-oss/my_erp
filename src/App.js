@@ -1,71 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-
-// Import Components
+//import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
-import Auth from './components/Auth'; // Added this import
-
-// Import Pages
 import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Items';
-import SalesOrder from './pages/SalesOrder';
-import PurchaseOrder from './pages/PurchaseOrder';
-import Reports from './pages/Reports';
-import Transactions from './pages/Transactions';
+import Inventory from './pages/Inventory'; // Import your new Items page
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
-import Settings from './Settings';
-import Journal from './pages/Journal';
+
+// Import other placeholder pages as you create them
+// import SalesOrder from './pages/SalesOrder';
 
 function App() {
-  const [activePage, setActivePage] = useState('dashboard');
-  const [session, setSession] = useState(null);
+  // This state controls which page is currently visible
+  const [activePage, setPage] = useState('dashboard');
 
-  // --- 1. HOOKS MUST COME FIRST ---
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // --- 2. TRAFFIC CONTROLLER (Logic) ---
+  // Logic to determine which component to show
   const renderPage = () => {
     switch (activePage) {
-      case 'dashboard': return <Dashboard setPage={setActivePage} />;
-      case 'inventory': return <Inventory />;
-      case 'sales': return <SalesOrder />;
-      case 'purchase': return <PurchaseOrder />;
-      case 'reports': return <Reports />;
-      case 'customers': return <Customers />;
-      case 'suppliers': return <Suppliers />;
-      case 'transactions': return <Transactions />;
-      case 'journal': return <Journal />;
-      case 'settings': return <Settings />;
-      default: return <Dashboard setPage={setActivePage} />;
+      case 'dashboard':
+        return <Dashboard />;
+      case 'inventory':
+        return <Inventory />;
+      case 'customers':
+        return <Customers />;
+      case 'suppliers':
+        return <Suppliers />;
+      // Add more cases here as you build more pages:
+      // case 'sales': return <SalesOrder />;
+      default:
+        return <Dashboard />;
     }
   };
 
-  // --- 3. RENDER LOGIC ---
-  
-  // If not logged in, show ONLY the Auth screen
-  if (!session) {
-    return <Auth />;
-  }
-
-  // If logged in, show the Sidebar + the Content
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar for Desktop Navigation */}
-      <Sidebar activePage={activePage} setPage={setActivePage} />
+      {/* Sidebar gets the state and the function to change it */}
+      <Sidebar activePage={activePage} setPage={setPage} />
       
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto h-screen p-4">
+      <main className="flex-1 overflow-y-auto">
         {renderPage()}
       </main>
     </div>
