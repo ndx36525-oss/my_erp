@@ -4,7 +4,7 @@ import { Package, Edit2, Trash2, Save, X, Search, Plus, AlertCircle, CheckCircle
 
 const Items = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  //const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editId, setEditId] = useState(null);
   
@@ -37,8 +37,8 @@ const Items = () => {
     }
   };
 
-  const handleUpdate = async (id) => {
-    const { error } = await supabase.from('items').update(formData).eq('id', id);
+  const handleUpdate = async (user_id) => {
+    const { error } = await supabase.from('items').update(formData).eq('user_id', user_id);
     if (error) alert(error.message);
     else {
       setEditId(null);
@@ -46,16 +46,16 @@ const Items = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (user_id) => {
     if (window.confirm("Delete this item?")) {
-      const { error } = await supabase.from('items').delete().eq('id', id);
+      const { error } = await supabase.from('items').delete().eq('user_id', user_id);
       if (error) alert(error.message);
       else fetchItems();
     }
   };
 
   const startEdit = (item) => {
-    setEditId(item.id);
+    setEditId(item.user_id);
     setFormData({ ...item });
   };
 
@@ -112,9 +112,9 @@ const Items = () => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredItems.map(item => (
-              <tr key={item.id} className="hover:bg-blue-50/20">
+              <tr key={item.user_id} className="hover:bg-blue-50/20">
                 <td className="p-4">
-                  {editId === item.id ? (
+                  {editId === item.user_id ? (
                     <input className="border p-1 w-full text-sm" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                   ) : (
                     <>
@@ -124,7 +124,7 @@ const Items = () => {
                   )}
                 </td>
                 <td className="p-4">
-                  {editId === item.id ? (
+                  {editId === item.user_id ? (
                     <div className="flex gap-1">
                       <input type="number" className="border p-1 w-16 text-sm" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value)})} />
                       <span className="text-gray-400 text-xs self-center">/</span>
@@ -143,7 +143,7 @@ const Items = () => {
                   )}
                 </td>
                 <td className="p-4 text-sm text-gray-600">
-                   {editId === item.id ? (
+                   {editId === item.user_id ? (
                      <input type="number" className="border p-1 w-20" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} />
                    ) : (
                      `$${item.price} / ${item.uom}`
@@ -151,15 +151,15 @@ const Items = () => {
                 </td>
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-2">
-                    {editId === item.id ? (
+                    {editId === item.user_id ? (
                       <>
-                        <button onClick={() => handleUpdate(item.id)} className="text-green-600 p-1"><Save size={18}/></button>
+                        <button onClick={() => handleUpdate(item.user_id)} className="text-green-600 p-1"><Save size={18}/></button>
                         <button onClick={() => setEditId(null)} className="text-gray-400 p-1"><X size={18}/></button>
                       </>
                     ) : (
                       <>
                         <button onClick={() => startEdit(item)} className="text-blue-500 p-1"><Edit2 size={16}/></button>
-                        <button onClick={() => handleDelete(item.id)} className="text-red-400 p-1"><Trash2 size={16}/></button>
+                        <button onClick={() => handleDelete(item.user_id)} className="text-red-400 p-1"><Trash2 size={16}/></button>
                       </>
                     )}
                   </div>
