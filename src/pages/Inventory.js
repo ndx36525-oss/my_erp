@@ -4,7 +4,7 @@ import { Package, Edit2, Trash2, Save, X, Search, Plus, AlertCircle, CheckCircle
 
 const Items = () => {
   const [items, setItems] = useState([]);
-  //const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editId, setEditId] = useState(null);
   
