@@ -12,15 +12,15 @@ const SalesOrder = () => {
   const [selectedItem, setSelectedItem] = useState('');
   const [quantity, setQuantity] = useState(0);
   const [price, setPrice] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('cash'); // Default to cash
+  const [paymentMethod, setPaymentMethod] = useState('cash');
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const { data: custData } = await supabase.from('customers').select('*');
-    const { data: itemData } = await supabase.from('items').select('*');
+    const { data: custData } = await supabase.from('customers').select('*').order('name');
+    const { data: itemData } = await supabase.from('items').select('*').order('name');
     setCustomers(custData || []);
     setItems(itemData || []);
   };
@@ -31,120 +31,144 @@ const SalesOrder = () => {
     if (item) setPrice(item.selling_price);
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  const item = items.find(i => i.id === selectedItem);
-  const totalRevenue = quantity * price;
-  const totalCost = quantity * item.cost_price; // This is the COGS amount
-  const customerName = customers.find(c => c.id === selectedCustomer)?.name;
-
-  // 1. Create Journal Entry Header
-  const { data: header, error: hErr } = await supabase
-    .from('journal_entries')
-    .insert([{ description: `Sale & COGS: ${customerName}` }])
-    .select().single();
-
-  if (hErr) return alert(hErr.message);
-
-  // 2. Define Account IDs (Use your actual UUIDs from Supabase)
-  const CASH_ACC = 'ccc129ab-c1f4-457b-ad67-9a3df3556b85';
-  const AR_ACC = 'ff50fd39-6a37-476f-970d-b32900ec1cc4';
-  const SALES_ACC = '07945ae9-2da2-4768-94a2-0e9680a1e1ca';
-  const INV_ACC = 'c57bebc2-0135-4442-81f9-34c034ada268';
-  const COGS_ACC = 'bd3a726c-caa6-43c8-8488-344595b854ce'; // The new account you just created
-
-  const debitAccount = paymentMethod === 'cash' ? CASH_ACC : AR_ACC;
-
-  // 3. The Quad-Entry (The Pro Way)
-  const { error: lErr } = await supabase.from('journal_lines').insert([
-    // The Revenue Part
-    { entry_id: header.id, account_id: debitAccount, debit: totalRevenue, credit: 0 },
-    { entry_id: header.id, account_id: SALES_ACC, debit: 0, credit: totalRevenue },
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (quantity <= 0) return alert("Please enter a valid quantity.");
     
-    // The Cost Part (COGS)
-    { entry_id: header.id, account_id: COGS_ACC, debit: totalCost, credit: 0 },
-    { entry_id: header.id, account_id: INV_ACC, debit: 0, credit: totalCost }
-  ]);
+    setLoading(true);
 
-  // 4. Physical Stock Update
-  const { error: stockErr } = await supabase
-    .from('items')
-    .update({ opening_stock: item.opening_stock - parseInt(quantity) })
-    .eq('id', selectedItem);
+    const item = items.find(i => i.id === selectedItem);
+    if (quantity > item.quantity) {
+        setLoading(false);
+        return alert("Insufficient stock!");
+    }
 
-  if (!lErr && !stockErr) {
-    alert("Sale and Cost recorded successfully!");
-    setQuantity(0);
-  }
-  setLoading(false);
-};
+    const totalRevenue = quantity * price;
+    const totalCost = quantity * (item.purchase_price || 0); // Corrected column name
+    const customerObj = customers.find(c => c.id === selectedCustomer);
+    const customerName = customerObj?.name;
+
+    try {
+        // 1. Create Journal Entry Header
+        const { data: header, error: hErr } = await supabase
+          .from('journal_entries')
+          .insert([{ description: `Sale & COGS: ${customerName} - ${item.name}` }])
+          .select().single();
+
+        if (hErr) throw hErr;
+
+        // 2. Account IDs (Using your provided UUIDs)
+        const CASH_ACC = 'ccc129ab-c1f4-457b-ad67-9a3df3556b85';
+        const AR_ACC = 'ff50fd39-6a37-476f-970d-b32900ec1cc4';
+        const SALES_ACC = '07945ae9-2da2-4768-94a2-0e9680a1e1ca';
+        const INV_ACC = 'c57bebc2-0135-4442-81f9-34c034ada268';
+        const COGS_ACC = 'bd3a726c-caa6-43c8-8488-344595b854ce';
+
+        const debitAccount = paymentMethod === 'cash' ? CASH_ACC : AR_ACC;
+
+        // 3. Quad-Entry Accounting
+        const { error: lErr } = await supabase.from('journal_lines').insert([
+          { entry_id: header.id, account_id: debitAccount, debit: totalRevenue, credit: 0 },
+          { entry_id: header.id, account_id: SALES_ACC, debit: 0, credit: totalRevenue },
+          { entry_id: header.id, account_id: COGS_ACC, debit: totalCost, credit: 0 },
+          { entry_id: header.id, account_id: INV_ACC, debit: 0, credit: totalCost }
+        ]);
+        if (lErr) throw lErr;
+
+        // 4. Physical Stock Update (Updated column name to 'quantity')
+        const { error: stockErr } = await supabase
+          .from('items')
+          .update({ quantity: item.quantity - parseInt(quantity) })
+          .eq('id', selectedItem);
+        if (stockErr) throw stockErr;
+
+        // 5. NEW: Log to Transactions Table (For the Item Deep Dive history)
+        const { error: transErr } = await supabase
+          .from('transactions')
+          .insert([{
+              item_id: selectedItem,
+              type: 'sale',
+              quantity: parseInt(quantity),
+              entity_name: customerName
+          }]);
+        if (transErr) throw transErr;
+
+        alert("Sale dispatched and stock updated!");
+        setQuantity(0);
+        fetchData(); // Refresh local stock data
+    } catch (err) {
+        alert("Error: " + err.message);
+    } finally {
+        setLoading(false);
+    }
+  };
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8">
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600">
+          <div className="bg-green-100 p-3 rounded-2xl text-green-600">
             <ShoppingCart size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Dispatch Truckload</h2>
-            <p className="text-sm text-gray-500">Record outgoing sales and revenue.</p>
+            <h2 className="text-2xl font-black text-gray-800 tracking-tight">Dispatch Sale</h2>
+            <p className="text-sm text-gray-500 font-medium">Create invoice and update inventory.</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Customer</label>
-              <select required className="w-full p-3 bg-gray-50 border rounded-xl outline-none" onChange={(e) => setSelectedCustomer(e.target.value)}>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Customer</label>
+              <select required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-green-500 transition-all" value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)}>
                 <option value="">Select Customer...</option>
                 {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
+            
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Product</label>
-              <select required className="w-full p-3 bg-gray-50 border rounded-xl outline-none" onChange={(e) => handleItemChange(e.target.value)}>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Product to Dispatch</label>
+              <select required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-green-500 transition-all" value={selectedItem} onChange={(e) => handleItemChange(e.target.value)}>
                 <option value="">Select Item...</option>
-                {items.map(i => <option key={i.id} value={i.id}>{i.name} (Stock: {i.opening_stock})</option>)}
+                {items.map(i => (
+                  <option key={i.id} value={i.id} disabled={i.quantity <= 0}>
+                    {i.name} (Stock: {i.quantity} {i.uom})
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <input type="number" placeholder="Qty" className="p-3 bg-gray-50 border rounded-xl outline-none" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
-            <input type="number" placeholder="Price" className="p-3 bg-gray-50 border rounded-xl outline-none" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <div>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Quantity</label>
+              <input type="number" placeholder="0" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-green-500" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Unit Price ($)</label>
+              <input type="number" step="0.01" placeholder="0.00" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-green-500" value={price} onChange={(e) => setPrice(e.target.value)} />
+            </div>
           </div>
 
-          {/* PAYMENT METHOD TOGGLE */}
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase mb-3 block">Customer Payment Status</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Payment Terms</label>
             <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${paymentMethod === 'cash' ? 'border-blue-600 bg-blue-50 text-blue-600 font-bold' : 'border-gray-100 text-gray-400'}`}
-              >
-                <Wallet size={18} /> Cash Paid
+              <button type="button" onClick={() => setPaymentMethod('cash')} className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${paymentMethod === 'cash' ? 'border-green-600 bg-green-50 text-green-700 font-bold' : 'border-gray-50 text-gray-400 hover:bg-gray-50'}`}>
+                <Wallet size={18} /> Instant Cash
               </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('credit')}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${paymentMethod === 'credit' ? 'border-blue-600 bg-blue-50 text-blue-600 font-bold' : 'border-gray-100 text-gray-400'}`}
-              >
-                <Clock size={18} /> On Account
+              <button type="button" onClick={() => setPaymentMethod('credit')} className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${paymentMethod === 'credit' ? 'border-green-600 bg-green-50 text-green-700 font-bold' : 'border-gray-50 text-gray-400 hover:bg-gray-50'}`}>
+                <Clock size={18} /> Credit (A/R)
               </button>
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 rounded-2xl flex justify-between items-center">
-            <span className="text-blue-700 font-bold uppercase text-xs">Total Revenue:</span>
-            <span className="text-xl font-black text-blue-800">${(quantity * price).toLocaleString()}</span>
+          <div className="p-4 bg-green-50 rounded-2xl flex justify-between items-center border border-green-100">
+            <span className="text-green-700 font-bold uppercase text-[10px] tracking-widest">Grand Total:</span>
+            <span className="text-2xl font-black text-green-800">${(quantity * price).toLocaleString()}</span>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all">
-            {loading ? "Processing..." : "Confirm & Dispatch"}
+          <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-green-100 transition-all active:scale-[0.98] disabled:bg-gray-300">
+            {loading ? "SYNCING..." : "CONFIRM & DISPATCH"}
           </button>
         </form>
       </div>
