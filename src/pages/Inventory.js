@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { 
-  Package, Plus, Edit2, Trash2, ChevronRight, 
+  Package, Plus, Edit2, Trash2, ChevronRight, History,
   ArrowLeft, ShoppingCart, Truck, X, Save 
 } from 'lucide-react';
 
