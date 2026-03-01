@@ -1,47 +1,43 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Inventory';
+import Items from './pages/Items';
+import SalesOrder from './pages/SalesOrder';
+import PurchaseOrder from './pages/PurchaseOrder';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
-import Reports from './pages/Reports';
 import Transactions from './pages/Transactions';
-import Journal from './pages/Journal';
-import Settings from './Settings';
-import PurchaseOrder from './pages/PurchaseOrder';
 
-// Import other placeholder pages as you create them
-import SalesOrder from './pages/SalesOrder';
+// Import other placeholders as needed
+// import Journal from './pages/Journal';
+// import Reports from './pages/Reports';
+// import Settings from './pages/Settings';
 
 function App() {
-  // This state controls which page is currently visible
+  // This state determines which page is currently displayed
   const [activePage, setPage] = useState('dashboard');
 
-  // Logic to determine which component to show
+  // Conditional Rendering Logic
   const renderPage = () => {
     switch (activePage) {
       case 'dashboard':
         return <Dashboard />;
       case 'inventory':
-        return <Inventory />;
+        return <Items />;
+      case 'sales':
+        return <SalesOrder />;
+      case 'purchase':
+        return <PurchaseOrder />;
       case 'customers':
         return <Customers />;
       case 'suppliers':
         return <Suppliers />;
-      case 'SalesOrder':
-        return <SalesOrder />;
-      case 'PurchaseOrder':
-        return <PurchaseOrder />;
-      case 'Reports':
-        return <Reports />;
-      case 'Transactions':
+      case 'transactions':
         return <Transactions />;
-      case 'Journal':
-        return <Journal />;
-       case 'Settings':
-        return <Settings />;
-      // Add more cases here as you build more pages:
-      // case 'sales': return <SalesOrder />;
+      /* case 'journal': return <Journal />;
+      case 'reports': return <Reports />;
+      case 'settings': return <Settings />; 
+      */
       default:
         return <Dashboard />;
     }
@@ -49,12 +45,14 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar gets the state and the function to change it */}
+      {/* Sidebar navigation */}
       <Sidebar activePage={activePage} setPage={setPage} />
       
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto">
-        {renderPage()}
+      <main className="flex-1 h-screen overflow-y-auto">
+        <div className="animate-in fade-in duration-500">
+          {renderPage()}
+        </div>
       </main>
     </div>
   );
