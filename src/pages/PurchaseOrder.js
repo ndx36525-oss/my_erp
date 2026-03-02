@@ -9,8 +9,8 @@ const PurchaseOrder = () => {
   
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
-  const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '' });
-  const [newItem, setNewItem] = useState({ name: '', purchase_price: 0, uom: 'pcs' });
+  const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: "" });
+  const [newItem, setNewItem] = useState({ name: '', purchase_price: 0, uom: '', shipment_threshold: "" });
 
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -41,7 +41,7 @@ const PurchaseOrder = () => {
       setSuppliers([...suppliers, data]);
       setSelectedSupplier(data.id);
       setShowSupplierModal(false);
-      setNewSupplier({ name: '', email: '', phone: '' });
+      setNewSupplier({ name: '', email: '', phone: '', address: "" });
     }
   };
 
@@ -52,7 +52,7 @@ const PurchaseOrder = () => {
       setItems([...items, data]);
       handleItemSelect(data.id);
       setShowItemModal(false);
-      setNewItem({ name: '', purchase_price: 0, uom: 'pcs' });
+      setNewItem({ name: '', purchase_price: 0, uom: '', shipment_threshold: "" });
     }
   };
 
@@ -79,7 +79,7 @@ const PurchaseOrder = () => {
       name: item.name,
       description: description,
       quantity: parseFloat(quantity),
-      price: parseFloat(price),
+      price: item.purchase_price,
       amount: parseFloat(quantity) * parseFloat(price)
     };
     if (editingIndex !== null) {
@@ -149,7 +149,9 @@ const PurchaseOrder = () => {
             </div>
             <div className="space-y-3">
               <input placeholder="Name" className="w-full p-3 border rounded-xl" value={newSupplier.name} onChange={e => setNewSupplier({...newSupplier, name: e.target.value})} />
+              <input placeholder="Email" className="w-full p-3 border rounded-xl" value={newSupplier.email} onChange={e => setNewSupplier({...newSupplier, email: e.target.value})} />
               <input placeholder="Phone" className="w-full p-3 border rounded-xl" value={newSupplier.phone} onChange={e => setNewSupplier({...newSupplier, phone: e.target.value})} />
+              <input placeholder="Address" className="w-full p-3 border rounded-xl" value={newSupplier.address} onChange={e => setNewSupplier({...newSupplier, address: e.target.value})} />
               <button onClick={quickAddSupplier} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Save Supplier</button>
             </div>
           </div>
@@ -165,7 +167,9 @@ const PurchaseOrder = () => {
             </div>
             <div className="space-y-3">
               <input placeholder="Item Name" className="w-full p-3 border rounded-xl" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
-              <input type="number" placeholder="Def. Purchase Price" className="w-full p-3 border rounded-xl" value={newItem.purchase_price} onChange={e => setNewItem({...newItem, purchase_price: e.target.value})} />
+              <input placeholder="Unit of Measure" className="w-full p-3 border rounded-xl" value={newItem.uom} onChange={e => setNewItem({...newItem, oum: e.target.value})} />
+              <input placeholder="Purchase Price" type= "number" className="w-full p-3 border rounded-xl" value={newItem.purchase_price} onChange={e => setNewItem({...newItem, purchase_price: e.target.value})} />
+              <input placeholder="Shipment Threshold" type= "number" className="w-full p-3 border rounded-xl" value={newItem.shipment_threshold} onChange={e => setNewItem({...newItem, shipment_threshold: e.target.value})} />
               <button onClick={quickAddItem} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Save & Select Item</button>
             </div>
           </div>
@@ -190,6 +194,7 @@ const PurchaseOrder = () => {
             <select required className="w-full p-3 bg-gray-50 border rounded-xl" value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)}>
               <option value="">Select Supplier...</option>
               {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <option value="new" className="text-blue-600 font-bold">+ Create New Supplier</option>
             </select>
           </div>
           <div>
