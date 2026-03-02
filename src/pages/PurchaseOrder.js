@@ -50,7 +50,7 @@ const PurchaseOrder = () => {
       setShowSupplierModal(true);
       return;
     }
-    setSelectedSupplierId(SupplierId);
+    setSelectedSupplier(SupplierId);
     const supplier = suppliers.find(i => i.id === SupplierId);
     if (supplier) {
       // SETTING THE PRICE FROM DATABASE
