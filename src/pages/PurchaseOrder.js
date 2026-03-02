@@ -39,9 +39,22 @@ const PurchaseOrder = () => {
     const { data, error } = await supabase.from('suppliers').insert([newSupplier]).select().single();
     if (!error) {
       setSuppliers([...suppliers, data]);
-      setSelectedSupplier(data.id);
+      handleSupplierSelect(data.id);
       setShowSupplierModal(false);
-      setNewSupplier({ name: '', email: '', phone: '', address: "" });
+      setNewSupplier({ name: '', email: '', phone: '', address: '' });
+    }
+  };
+
+  const handleSupplierSelect = (SupplierId) => {
+    if (SupplierId === "new") {
+      setShowSupplierModal(true);
+      return;
+    }
+    setSelectedSupplierId(SupplierId);
+    const supplier = suppliers.find(i => i.id === SupplierId);
+    if (supplier) {
+      // SETTING THE PRICE FROM DATABASE
+      setSuppliers(supplier.name || '');
     }
   };
 
@@ -52,7 +65,7 @@ const PurchaseOrder = () => {
       setItems([...items, data]);
       handleItemSelect(data.id);
       setShowItemModal(false);
-      setNewItem({ name: '', purchase_price: 0, uom: '', shipment_threshold: "" });
+      setNewItem({ name: '', purchase_price: 0, uom: '', shipment_threshold: '' });
     }
   };
 
