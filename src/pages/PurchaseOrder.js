@@ -50,7 +50,7 @@ const PurchaseOrder = () => {
     const { data, error } = await supabase.from('items').insert([newItem]).select().single();
     if (!error) {
       setItems([...items, data]);
-      handleItemSelect(data.id);
+      setSelectedItemId(data.id);
       setShowItemModal(false);
       setNewItem({ name: '', description: '', purchase_price: 0, selling_price: 0, uom: 'pcs' });
     }
@@ -65,11 +65,6 @@ const PurchaseOrder = () => {
     if (itemId === "new") {
       setShowItemModal(true);
       return;
-    }
-    setSelectedItemId(itemId);
-    const item = items.find(i => i.id === itemId);
-    if (item) {
-      setPrice(items.purchase_price || 0);
     }
   };
 
@@ -207,8 +202,8 @@ const PurchaseOrder = () => {
             <div className="space-y-3">
               <input placeholder="Item Name" className="w-full p-3 border rounded-xl" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
               <input placeholder="Description" className="w-full p-3 border rounded-xl" value={newItem.description} onChange={e => setNewItem({...newItem, description: e.target.value})} />
-              <input placeholder="Purchase Price" type="number" className="w-full p-3 border rounded-xl" value={newItem.purchase_price} onChange={e => setNewItem({...newItem, purchase_price: e.target.value})} />
-              <input placeholder="Selling Price" type="number" className="w-full p-3 border rounded-xl" value={newItem.selling_price} onChange={e => setNewItem({...newItem, selling_price_price: e.target.value})} />
+              <input placeholder="Purchase Price" className="w-full p-3 border rounded-xl" value={newItem.purchase_price} onChange={e => setNewItem({...newItem, purchase_price: e.target.value})} />
+              <input placeholder="Selling Price" className="w-full p-3 border rounded-xl" value={newItem.selling_price} onChange={e => setNewItem({...newItem, selling_price_price: e.target.value})} />
               <input placeholder="Unit of Measure (pcs/kg)" className="w-full p-3 border rounded-xl" value={newItem.uom} onChange={e => setNewItem({...newItem, uom: e.target.value})} />
               <input placeholder="Shipment Threshold" type="number" className="w-full p-3 border rounded-xl" value={newItem.shipment_threshold} onChange={e => setNewItem({...newItem, shipment_threshold: e.target.value})} />
               <button onClick={quickAddItem} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Save & Select Item</button>
