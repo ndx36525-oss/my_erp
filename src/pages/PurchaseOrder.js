@@ -52,7 +52,7 @@ const PurchaseOrder = () => {
       setItems([...items, data]);
       setSelectedItemId(data.id);
       setShowItemModal(false);
-      setNewItem({ name: '', description: '', purchase_price: 0, selling_price: 0, uom: 'pcs' });
+      setNewItem({ name: '', description: '', purchase_price: '', selling_price: '', uom: 'pcs' });
     }
   };
 
@@ -65,6 +65,11 @@ const PurchaseOrder = () => {
     if (itemId === "new") {
       setShowItemModal(true);
       return;
+    }
+    setSelectedItemId(itemId);
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+      setPrice(item.purchase_price || 0);
     }
   };
 
