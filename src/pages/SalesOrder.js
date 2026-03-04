@@ -40,7 +40,7 @@ const SalesOrder = () => {
       setCustomers([...customers, data]);
       setSelectedCustomer(data.id);
       setShowCustomerModal(false);
-      setNewCustomer({ name: '', phone: '', email: '' });
+      setNewCustomer({ name: '', phone: '', email: '' , address: ''});
     }
   };
 
@@ -51,8 +51,13 @@ const SalesOrder = () => {
       setItems([...items, data]);
       handleItemSelect(data.id);
       setShowItemModal(false);
-      setNewItem({ name: '', selling_price: 0, purchase_price: 0, quantity: 0 });
+      setNewItem({ name: '', description: '', purchase_price: 0, selling_price: 0, uom: '', quantity: 0 });
     }
+  };
+
+  const handleCustomerSelect = (id) => {
+    if (id === "new") setShowCustomerModal(true);
+    else setSelectedCustomer(id);
   };
 
   // AUTO-FILL Logic
@@ -118,7 +123,7 @@ const SalesOrder = () => {
       for (const line of lines) {
         const itemInDB = items.find(i => i.id === line.item_id);
         await supabase.from('items').update({ quantity: itemInDB.quantity - line.quantity }).eq('id', line.item_id);
-        await supabase.from('transactions').insert([{ item_id: line.item_id, type: 'sale', quantity: line.quantity, entity_name: customerName }]);
+        await supabase.from('transactions').insert([{ item_id: line.item_id, type: 'sale', price: line.price, quantity: line.quantity, entity_name: customerName }]);
       }
 
       await supabase.from('journal_lines').insert([
@@ -137,8 +142,42 @@ const SalesOrder = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto bg-gray-50 min-h-screen">
-      {/* Modals remain for Customer and Item Quick-Add ... */}
-      {/* (Skipping modal code for brevity, same as previous version) */}
+{/* Quick Add Customer Modal */}
+      {showCustomerModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-800 flex items-center gap-2"><UserPlus size={22} className="text-green-600"/> New Customer</h3>
+              <button onClick={() => setShowCustomerModal(false)} className="text-gray-400 hover:text-gray-600"><X/></button>
+            </div>
+            <div className="space-y-4">
+              <input placeholder="Customer Name" className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500" value={newCustomer.name} onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} />
+              <input placeholder="Phone Number" className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500" value={newCustomer.phone} onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} />
+              <button onClick={quickAddCustomer} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-100 hover:bg-green-700 transition-all">Save Customer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Item Modal */}
+      {showItemModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-800 flex items-center gap-2"><PackagePlus size={22} className="text-green-600"/> Quick Stock Add</h3>
+              <button onClick={() => setShowItemModal(false)} className="text-gray-400 hover:text-gray-600"><X/></button>
+            </div>
+            <div className="space-y-4">
+              <input placeholder="Item Name" className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
+              <div className="grid grid-cols-2 gap-4">
+                <input type="number" placeholder="Sale Price" className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500" value={newItem.selling_price} onChange={e => setNewItem({...newItem, selling_price: e.target.value})} />
+                <input type="number" placeholder="Initial Qty" className="w-full p-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-green-500" value={newItem.quantity} onChange={e => setNewItem({...newItem, quantity: e.target.value})} />
+              </div>
+              <button onClick={quickAddItem} className="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-100 hover:bg-green-700 transition-all">Create & Sell</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center gap-3 mb-8">
@@ -153,11 +192,11 @@ const SalesOrder = () => {
           <div>
             <div className="flex justify-between items-end mb-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block italic">Customer / Client</label>
-              <button onClick={() => setShowCustomerModal(true)} className="text-[10px] font-black text-green-600 uppercase hover:underline">+ New Customer</button>
             </div>
             <select className="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-green-500" value={selectedCustomer} onChange={(e) => setSelectedCustomer(e.target.value)}>
               <option value="">Select Customer...</option>
               {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <option value="new" className="text-green-600 font-bold">+ New Customer</option>
             </select>
           </div>
           <div>

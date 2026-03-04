@@ -31,7 +31,7 @@ const Items = () => {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
-      .eq('id', itemId)
+      .eq('item_id', itemId)
       .order('created_at', { ascending: false });
     if (!error) setTransactions(data);
   };

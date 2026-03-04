@@ -149,7 +149,8 @@ const PurchaseOrder = () => {
           item_id: line.item_id, 
           type: 'purchase', 
           quantity: line.quantity, 
-          entity_name: supplierName 
+          entity_name: supplierName ,
+          price: line.price
         }]);
       }
 
