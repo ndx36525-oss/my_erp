@@ -31,7 +31,7 @@ const Items = () => {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
-      .eq('item_id', itemId)
+      .eq('id', itemId)
       .order('created_at', { ascending: false });
     if (!error) setTransactions(data);
   };
@@ -48,7 +48,7 @@ const Items = () => {
   };
 
   const handleUpdate = async (id) => {
-    const { error } = await supabase.from('items').update(formData).eq('item_id', id);
+    const { error } = await supabase.from('items').update(formData).eq('id', id);
     if (error) alert(error.message);
     else {
       setEditId(null);
@@ -58,7 +58,7 @@ const Items = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Delete this item?")) {
-      await supabase.from('items').delete().eq('item_id', id);
+      await supabase.from('items').delete().eq('id', id);
       fetchItems();
     }
   };
