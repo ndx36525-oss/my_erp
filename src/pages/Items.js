@@ -47,15 +47,6 @@ const Items = () => {
     }
   };
 
-  const handleUpdate = async (id) => {
-    const { error } = await supabase.from('items').update(formData).eq('id', id);
-    if (error) alert(error.message);
-    else {
-      setEditId(null);
-      fetchItems();
-    }
-  };
-
   const handleDelete = async (id) => {
     if (window.confirm("Delete this item?")) {
       await supabase.from('items').delete().eq('id', id);
@@ -90,8 +81,11 @@ const Items = () => {
             <thead className="bg-gray-50 text-xs font-bold uppercase text-gray-400">
               <tr>
                 <th className="p-4">Type</th>
+                <th className="p-4">Description</th>
                 <th className="p-4">Supplier/Customer</th>
                 <th className="p-4">Quantity</th>
+                <th className="p-4">Price</th>
+                <th className="p-4">Amount</th>
                 <th className="p-4">Date</th>
               </tr>
             </thead>
@@ -100,12 +94,15 @@ const Items = () => {
                 <tr key={t.id} className="text-sm">
                   <td className="p-4 flex items-center gap-2">
                     {t.type === 'purchase' ? 
-                      <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><Truck size={12}/> Purchase</span> : 
-                      <span className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><ShoppingCart size={12}/> Sale</span>
+                      <p className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><ShoppingCart size={12}/> Purchase</p> : 
+                      <p className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><Truck size={12}/> Sale</p>
                     }
+                    <p className="text-[10px] text-gray-400 font-mono uppercase">{t.description}</p>
                   </td>
                   <td className="p-4 font-semibold text-gray-700">{t.entity_name}</td>
-                  <td className="p-4 font-mono font-bold">{t.quantity}</td>
+                  <td className="p-4 font-mono font-bold">{t.quantity} {t.uom}</td>
+                  <td className="p-4 font-mono font-bold">{t.price}</td>
+                  <td className="p-4 font-mono font-bold">${t.quantity * t.price}</td>
                   <td className="p-4 text-gray-400">{new Date(t.created_at).toLocaleDateString()}</td>
                 </tr>
               )) : (
