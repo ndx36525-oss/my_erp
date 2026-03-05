@@ -139,22 +139,57 @@ const PurchaseOrder = () => {
       const { data: header, error: hErr } = await supabase.from('journal_entries').insert([{ description: `Purchase: ${supplierName}` }]).select().single();
       if (hErr) throw hErr;
 
-      // 2. Process Stock & Transactions
-      for (const line of lines) {
-        const currentItem = items.find(i => i.id === line.item_id);
-        const newQty = (currentItem.quantity || 0) + line.quantity;
-        
-        await supabase.from('items').update({ quantity: newQty, purchase_price: line.price }).eq('id', line.item_id);
-        await supabase.from('transactions').insert([{ 
-          item_id: line.item_id, 
-          type: 'purchase', 
-          quantity: line.quantity, 
-          entity_name: supplierName ,
-          price: line.price
-        }]);
-      }
+// 2. Group lines by item to handle multiple prices for the same item in one PO
+      const summaryByItem = lines.reduce((acc, line) => {
+        if (!acc[line.item_id]) {
+          acc[line.item_id] = { totalQty: 0, totalCost: 0 };
+        }
+        acc[line.item_id].totalQty += line.quantity;
+        acc[line.item_id].totalCost += line.amount;
+        return acc;
+      }, {});
 
-      // 3. Financials (Inventory vs Cash/AP)
+    // 3. Update each item's quantity AND weighted average price
+     for (const [itemId, incoming] of Object.entries(summaryByItem)) {
+       const { data: currentItem } = await supabase
+        .from('items')
+        .select('quantity, purchase_price')
+        .eq('id', itemId)
+        .single();
+
+        const currentQty = currentItem?.quantity || 0;
+        const currentPrice = currentItem?.purchase_price || 0;
+      
+       const newTotalQty = currentQty + incoming.totalQty;
+      
+      // WEIGHTED AVERAGE CALCULATION
+      // (Old Qty * Old Price) + (New Qty * New Price) / Total Qty
+        const currentValuation = currentQty * currentPrice;
+        const newValuation = currentValuation + incoming.totalCost;
+       const newWeightedAverage = newTotalQty > 0 ? newValuation / newTotalQty : 0;
+
+      await supabase.from('items').update({ 
+        quantity: newTotalQty,
+        purchase_price: newWeightedAverage // Updates to the new average cost
+      }).eq('id', itemId);
+    }
+
+    // 4. Transactions & Journals
+    const transactionRecords = lines.map(line => ({
+      item_id: line.item_id,
+      type: 'purchase',
+      quantity: line.quantity,
+      price: line.price, 
+      entity_name: supplierName
+    }));
+
+    const { error: transErr } = await supabase
+      .from('transactions')
+      .insert(transactionRecords);
+    
+    if (transErr) throw transErr;
+
+      // 5. Financials (Inventory vs Cash/AP)
       const CASH_ACC = 'ccc129ab-c1f4-457b-ad67-9a3df3556b85'; 
       const AP_ACC = '987f41e7-f2b9-44ee-855e-07ad08522197'; 
       const INV_ACC = 'c57bebc2-0135-4442-81f9-34c034ada268';
