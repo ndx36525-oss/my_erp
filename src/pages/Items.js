@@ -93,15 +93,15 @@ const Items = () => {
                 <tr key={t.id} className="text-sm">
                   <div className="p-4 flex items-center gap-2">
                     {t.type === 'purchase' ? 
-                      <p className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><ShoppingCart size={12}/> Purchase</p> : 
-                      <p className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><Truck size={12}/> Sale</p>
+                      <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><ShoppingCart size={12}/> Purchase</span> : 
+                      <span className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><Truck size={12}/> Sale</span>
                     }
-                    <p className="text-[20px] text-gray-400 font-mono uppercase">{t.description}</p>
+                    <p className="text-[12px] text-gray-400 font-mono uppercase">{t.description}</p>
                   </div>
                   <td className="p-4 font-semibold text-gray-700">{t.entity_name}</td>
-                  <td className="p-4 font-mono font-bold">{t.quantity} {t.uom}</td>
-                  <td className="p-4 font-mono font-bold">{t.price}</td>
-                  <td className="p-4 font-mono font-bold">${t.quantity * t.price}</td>
+                  <td className="p-4 font-mono font-semibold">{t.quantity} {t.uom}</td>
+                  <td className="p-4 font-mono font-semibold">{t.price}</td>
+                  <td className="p-4 font-mono font-semibold">${t.quantity * t.price}</td>
                   <td className="p-4 text-gray-400">{new Date(t.created_at).toLocaleDateString()}</td>
                 </tr>
               )) : (

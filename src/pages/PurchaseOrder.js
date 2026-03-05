@@ -172,7 +172,8 @@ const PurchaseOrder = () => {
       type: 'purchase',
       quantity: line.quantity,
       price: line.price, 
-      entity_name: supplierName
+      entity_name: supplierName,
+      uom: line.uom
     }));
 
     const { error: transErr } = await supabase
