@@ -154,8 +154,8 @@ const Items = () => {
           <thead className="bg-gray-50 text-[10px] font-black uppercase text-gray-400 border-b tracking-wider">
             <tr>
               <th className="p-5">Product Info</th>
-              <th className="p-5">Prices (In/Out)</th>
-              <th className="p-5">Stock / UOM</th>
+              <th className="p-5">Average Cost </th>
+              <th className="p-5">Quantity</th>
               <th className="p-5">Total Value</th>
               <th className="p-5 text-right">Actions</th>
             </tr>
@@ -172,9 +172,7 @@ const Items = () => {
                     <ChevronRight size={14} className="text-gray-200 group-hover:text-blue-400 ml-auto" />
                   </div>
                 </td>
-                <td className="p-5 text-sm">
-                  <p className="text-gray-500">P: <span className="text-gray-800 font-semibold">${item.purchase_price}</span></p>
-                  <p className="text-gray-500">S: <span className="text-blue-600 font-semibold">${item.selling_price}</span></p>
+                <td className="p-5 text-sm">${parseFloat(item.amount / item.quantity).toFixed(2)}
                 </td>
                 <td className="p-5">
                   <span className={`px-2 py-1 rounded-md text-[10px] font-black ${
@@ -184,7 +182,7 @@ const Items = () => {
                   </span>
                 </td>
                 <td className="p-5 font-bold text-gray-900">
-                  ${(item.quantity * item.purchase_price).toLocaleString()}
+                  ${(item.amount).toLocaleString()}
                 </td>
                 <td className="p-5 text-right">
                   <div className="flex justify-end gap-1">

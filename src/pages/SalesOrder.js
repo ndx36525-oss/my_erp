@@ -121,9 +121,21 @@ const SalesOrder = () => {
       const debitAccount = paymentMethod === 'cash' ? CASH_ACC : AR_ACC;
 
       for (const line of lines) {
-        const itemInDB = items.find(i => i.id === line.item_id);
-        await supabase.from('items').update({ quantity: itemInDB.quantity - line.quantity }).eq('id', line.item_id);
-        await supabase.from('transactions').insert([{ item_id: line.item_id, type: 'sale', price: line.price, quantity: line.quantity, entity_name: customerName }]);
+      const { data: itemInDB } = await supabase
+        .from('items')
+        .select('quantity, amount')
+        .eq('id', line.item_id).single();
+
+      // Calculate the real-time WAC for this sale
+      const currentWAC = itemInDB.quantity > 0 ? (itemInDB.amount / itemInDB.quantity) : 0;
+      const lineCOGS = line.quantity * currentWAC;
+      totalCOGS += lineCOGS;
+
+      // Deduct both Quantity and its proportional Value (Amount)
+      await supabase.from('items').update({ 
+        quantity: itemInDB.quantity - line.quantity,
+        amount: itemInDB.amount - lineCOGS 
+      }).eq('id', line.item_id);
       }
 
       await supabase.from('journal_lines').insert([

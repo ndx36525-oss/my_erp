@@ -135,46 +135,38 @@ const PurchaseOrder = () => {
     const grandTotal = lines.reduce((sum, line) => sum + line.amount, 0);
 
     try {
-      // 1. Create Journal Entry Header
+      // Create Journal Entry Header
       const { data: header, error: hErr } = await supabase.from('journal_entries').insert([{ description: `Purchase: ${supplierName}` }]).select().single();
       if (hErr) throw hErr;
 
-// 2. Group lines by item to handle multiple prices for the same item in one PO
-      const summaryByItem = lines.reduce((acc, line) => {
-        if (!acc[line.item_id]) {
-          acc[line.item_id] = { totalQty: 0, totalCost: 0 };
-        }
-        acc[line.item_id].totalQty += line.quantity;
-        acc[line.item_id].totalCost += line.amount;
-        return acc;
-      }, {});
+// Group by item to handle multiples
+    const summaryByItem = lines.reduce((acc, line) => {
+      if (!acc[line.item_id]) acc[line.item_id] = { qty: 0, cost: 0 };
+      acc[line.item_id].qty += line.quantity;
+      acc[line.item_id].cost += line.amount;
+      return acc;
+    }, {});
 
-    // 3. Update each item's quantity AND weighted average price
-     for (const [itemId, incoming] of Object.entries(summaryByItem)) {
-       const { data: currentItem } = await supabase
+    for (const [itemId, incoming] of Object.entries(summaryByItem)) {
+      const { data: itemInDB } = await supabase
         .from('items')
-        .select('quantity, purchase_price')
-        .eq('id', itemId)
-        .single();
+        .select('quantity, amount')
+        .eq('id', itemId).single();
 
-        const currentQty = currentItem?.quantity || 0;
-        const currentPrice = currentItem?.purchase_price || 0;
-      
-       const newTotalQty = currentQty + incoming.totalQty;
-      
-      // WEIGHTED AVERAGE CALCULATION
-      // (Old Qty * Old Price) + (New Qty * New Price) / Total Qty
-        const currentValuation = currentQty * currentPrice;
-        const newValuation = currentValuation + incoming.totalCost;
-       const newWeightedAverage = newTotalQty > 0 ? newValuation / newTotalQty : 0;
+      // UPDATE LOGIC:
+      // We add incoming quantity to existing quantity
+      // We add incoming cost to existing 'amount' (Total Value)
+      // We DO NOT touch 'purchase_price'
+      const newTotalQty = (itemInDB?.quantity || 0) + incoming.qty;
+      const newTotalValue = (itemInDB?.amount || 0) + incoming.cost;
 
       await supabase.from('items').update({ 
         quantity: newTotalQty,
-        purchase_price: newWeightedAverage // Updates to the new average cost
+        amount: newTotalValue 
       }).eq('id', itemId);
     }
 
-    // 4. Transactions & Journals
+    // Transactions & Journals
     const transactionRecords = lines.map(line => ({
       item_id: line.item_id,
       type: 'purchase',
