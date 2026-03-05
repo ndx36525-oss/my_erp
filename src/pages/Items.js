@@ -81,7 +81,6 @@ const Items = () => {
             <thead className="bg-gray-50 text-xs font-bold uppercase text-gray-400">
               <tr>
                 <th className="p-4">Type</th>
-                <th className="p-4">Description</th>
                 <th className="p-4">Supplier/Customer</th>
                 <th className="p-4">Quantity</th>
                 <th className="p-4">Price</th>
@@ -92,13 +91,13 @@ const Items = () => {
             <tbody className="divide-y divide-gray-100">
               {transactions.length > 0 ? transactions.map(t => (
                 <tr key={t.id} className="text-sm">
-                  <td className="p-4 flex items-center gap-2">
+                  <div className="p-4 flex items-center gap-2">
                     {t.type === 'purchase' ? 
                       <p className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><ShoppingCart size={12}/> Purchase</p> : 
                       <p className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md font-bold text-[10px] uppercase"><Truck size={12}/> Sale</p>
                     }
-                    <p className="text-[10px] text-gray-400 font-mono uppercase">{t.description}</p>
-                  </td>
+                    <p className="text-[20px] text-gray-400 font-mono uppercase">{t.description}</p>
+                  </div>
                   <td className="p-4 font-semibold text-gray-700">{t.entity_name}</td>
                   <td className="p-4 font-mono font-bold">{t.quantity} {t.uom}</td>
                   <td className="p-4 font-mono font-bold">{t.price}</td>
@@ -166,7 +165,7 @@ const Items = () => {
                       <p className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{item.name}</p>
                       <p className="text-[10px] text-gray-400 font-mono uppercase">{item.sku}</p>
                     </div>
-                    <ChevronRight size={14} className="text-gray-200 group-hover:text-blue-400 ml-auto" />
+                    <ChevronRight size={14} className="text-gray-200 font-bold group-hover:text-blue-400 ml-auto" />
                   </div>
                 </td>
                 <td className="p-5 text-sm">${parseFloat(item.amount / item.quantity).toFixed(2)}
