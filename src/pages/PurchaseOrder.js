@@ -167,24 +167,24 @@ const PurchaseOrder = () => {
     }
 
     // Transactions & Journals
-const transactionRecords = lines.map(line => {
+    const transactionRecords = lines.map(line => {
   // Find the item to get the UoM as we discussed earlier
-  const itemData = items.find(i => i.id === line.item_id);
+      const itemData = items.find(i => i.id === line.item_id);
   
-  return {
-    item_id: line.item_id,
-    type: 'purchase',
-    quantity: line.quantity,
-    price: line.price, 
-    entity_name: supplierName,
-    uom: itemData?.uom || 'pcs',
+      return {
+       item_id: line.item_id,
+      type: 'purchase',
+      quantity: line.quantity,
+      price: line.price, 
+      entity_name: supplierName,
+      uom: itemData?.uom,
     // THIS PART MAPS YOUR DESCRIPTION
-    description: line.description || `Purchase from ${supplierName}`, 
-    amount: Math.round(line.amount)
-  };
-});
+      description: line.description, 
+      amount: Math.round(line.amount)
+     };
+    });
 
-await supabase.from('transactions').insert(transactionRecords);
+      await supabase.from('transactions').insert(transactionRecords);
 
       // 5. Financials (Inventory vs Cash/AP)
       const CASH_ACC = 'ccc129ab-c1f4-457b-ad67-9a3df3556b85'; 
